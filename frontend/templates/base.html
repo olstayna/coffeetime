@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f4efe4" />
+  <title>{% block title %}CoffeeTime{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" sizes="any" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v=6) }}" />
+  <script src="{{ url_for('static', filename='js/app.js', v=6) }}" defer></script>
+</head>
+
+<body>
+  <header class="site-header">
+    <a class="brand"
+      href="{{ url_for('admin.dashboard') if session.get('role') == 'admin' else url_for('shop.catalog') }}"
+      aria-label="CoffeeTime — início"><span class="brand-mark"
+        aria-hidden="true"><i></i></span><span>Coffee<span>Time</span></span></a>
+    <button class="menu-button" type="button" aria-label="Abrir menu" aria-expanded="false">
+      <span></span><span></span>
+    </button>
+    <nav class="main-nav" aria-label="Navegação principal">
+      {% if session.get('role') == 'admin' %}
+      <a class="account-link" href="{{ url_for('admin.dashboard') }}"><svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />
+        </svg>Painel administrativo</a>
+      {% else %}
+      <a href="{{ url_for('shop.catalog') }}#cardapio">Cardápio</a>
+      {% if session.get('user_id') %}<a class="account-link"
+        href="{{ url_for('admin.dashboard') if session.get('role') == 'admin' else url_for('shop.orders') }}"><svg
+          viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 21a8 8 0 0 1 16 0" />
+        </svg>{{ 'Administração' if session.get('role') == 'admin' else 'Minha
+        conta' }}</a>{% else %}<a class="account-link" href="{{ url_for('auth.login') }}"><svg viewBox="0 0 24 24"
+          aria-hidden="true">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 21a8 8 0 0 1 16 0" />
+        </svg>Entrar</a>{% endif %}
+      {% endif %}
+      <div class="nav-actions">
+        <button class="theme-toggle" type="button" aria-label="Ativar tema escuro" title="Alternar tema">
+          <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20 15.2A9 9 0 0 1 8.8 4 9 9 0 1 0 20 15.2Z" />
+          </svg><svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" />
+            <path
+              d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41" />
+          </svg>
+        </button>
+        {% if session.get('role') != 'admin' %}<div class="cart-menu">
+          <a class="cart-link" href="{{ url_for('shop.cart') }}" aria-label="Carrinho com {{ cart_count }} itens"><svg
+              viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 3h2l2.2 11h10.9l2-7H6" />
+              <circle cx="9" cy="19" r="1.5" />
+              <circle cx="18" cy="19" r="1.5" />
+            </svg><span class="badge" data-cart-count>{{ cart_count }}</span></a>
+          <aside class="cart-popover" aria-label="Prévia do carrinho">
+            <div class="popover-title">
+              <strong>Seu carrinho</strong><span>{{ cart_count }} itens</span>
+            </div>
+            {% for item in cart_preview['items'][:3] %}
+            <a class="mini-cart-item" href="{{ url_for('shop.product_detail', product_id=item.product.id) }}">
+              <img class="mini-product-photo" src="{{ item.product|image_data_uri }}" alt=""><span><b>{{
+                  item.product.name }}</b><small>{{ item.quantity }} × R$ {{
+                  "%.2f"|format(item.product.price)|replace(".", ",")
+                  }}</small></span><b>R$ {{ "%.2f"|format(item.subtotal)|replace(".", ",") }}</b>
+            </a>
+            {% else %}
+            <p class="muted">Seu carrinho está vazio.</p>
+            {% endfor %}{% if cart_preview['items'] %}
+            <div class="mini-cart-total">
+              <span>Total</span><strong>R$ {{ "%.2f"|format(cart_preview.total)|replace(".", ",")
+                }}</strong>
+            </div>
+            {% endif %}<a class="button full" href="{{ url_for('shop.cart') }}">Ver carrinho</a>
+          </aside>
+        </div>{% endif %}
+      </div>
+      {% if session.get('user_id') %}
+      <form action="{{ url_for('auth.logout') }}" method="post">
+        <button class="link-button" type="submit">Sair</button>
+      </form>
+      {% endif %}
+    </nav>
+  </header>
+  <main class="container" id="conteudo">
+    {% block content %}{% endblock %}
+  </main>
+  <div class="toast-region" aria-live="polite" aria-atomic="true">
+    {% with messages = get_flashed_messages(with_categories=true) %}{% for
+    category, message in messages %}
+    <div class="toast toast-{{ category }}" role="status">
+      <span>{{ message }}</span><button type="button" aria-label="Fechar notificação">×</button><i></i>
+    </div>
+    {% endfor %}{% endwith %}
+  </div>
+  <footer>
+    <a class="brand footer-brand" href="{{ url_for('shop.catalog') }}"><span class="brand-mark"
+        aria-hidden="true"><i></i></span><span>Coffee<span>Time</span></span></a>
+    <p>Pequenas pausas. Grandes momentos.</p>
+    <span>© 2026 CoffeeTime - Projeto Acadêmico, feito por <a href="https://github.com/taynasantana" target="_blank"
+        style="color: brown;">Tayná Santana</a> <br> Todos os direitos reservados.</span>
+  </footer>
+</body>
+
+</html>

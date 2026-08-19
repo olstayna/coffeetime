@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Entrar · Coffee Time{% endblock %}
+
+{% block content %}
+<section class="auth-card">
+  <p class="eyebrow">Bem-vindo de volta</p>
+  <h1>Entre na sua conta</h1>
+
+  <form method="post">
+    <label>
+      E-mail
+      <input type="email" name="email" autocomplete="email" required>
+    </label>
+
+    <label>
+      Senha
+      <span class="password-field"><input type="password" name="password" autocomplete="current-password" required><button class="password-toggle" type="button" aria-label="Mostrar senha" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></span>
+    </label>
+
+    <button class="button full" type="submit">Entrar</button>
+  </form>
+
+  <p>Ainda não tem conta? <a href="{{ url_for('auth.register') }}">Cadastre-se</a></p>
+</section>
+{% endblock %}

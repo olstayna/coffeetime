@@ -1,0 +1,159 @@
+{% extends "base.html" %}{% block title %}Administração · CoffeeTime{% endblock %}{% block content %}
+<header class="section-heading admin-heading">
+  <div>
+    <p class="eyebrow">Gestão</p>
+    <h1>Painel administrativo</h1>
+  </div><a class="button" href="{{ url_for('admin.new_product') }}">Novo produto</a>
+</header>
+
+<section class="admin-section">
+  <div class="admin-section-title">
+    <div>
+      <p class="eyebrow">Catálogo</p>
+      <h2>Produtos</h2>
+    </div><span>{{ products|length }} cadastrados</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Categoria</th>
+          <th>Preço</th>
+          <th>Situação</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody>{% for product in products %}<tr>
+          <td>{{ product.name }}</td>
+          <td>{{ product.category }}</td>
+          <td>R$ {{ "%.2f"|format(product.price)|replace(".", ",") }}</td>
+          <td><span class="status">{{ "Ativo" if product.active else "Inativo" }}</span></td>
+          <td><a class="table-link" href="{{ url_for('admin.edit_product', product_id=product.id) }}">Editar</a></td>
+        </tr>{% endfor %}</tbody>
+    </table>
+  </div>
+</section>
+
+<section class="admin-section">
+  <div class="admin-section-title">
+    <div>
+      <p class="eyebrow">Operação</p>
+      <h2>Pedidos</h2>
+    </div><span>{{ orders|length }} pedidos</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Pedido</th>
+          <th>Cliente</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Próxima etapa</th>
+        </tr>
+      </thead>
+      <tbody>{% for order in orders %}{% set flow = ["recebido", "em preparo", "em rota", "entregue"] %}{% set
+        next_index = flow.index(order.status) + 1 %}<tr>
+          <td>#{{ order.id }}</td>
+          <td>{{ order.customer_name }}</td>
+          <td>R$ {{ "%.2f"|format(order.total)|replace(".", ",") }}</td>
+          <td><span class="status">{{ order.status|capitalize }}</span></td>
+          <td>{% if next_index < flow|length %}<form method="post"
+              action="{{ url_for('admin.update_order_status', order_id=order.id) }}"><input type="hidden" name="status"
+                value="{{ flow[next_index] }}"><button class="small-button" type="submit">Marcar: {{ flow[next_index]|capitalize
+                }}</button></form>{% else %}Concluído{% endif %}</td>
+        </tr>{% else %}<tr>
+          <td colspan="5">Nenhum pedido recebido.</td>
+        </tr>{% endfor %}</tbody>
+    </table>
+  </div>
+</section>
+
+<section class="admin-section" id="usuarios">
+  <div class="admin-section-title">
+    <div>
+      <p class="eyebrow">Clientes</p>
+      <h2>Usuários cadastrados</h2>
+    </div><span>{{ users|length }} clientes</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>E-mail</th>
+          <th>Telefone</th>
+          <th>Cadastro</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody>{% for user in users %}<tr>
+          <td><strong>{{ user.name }}</strong></td>
+          <td><a class="table-link" href="mailto:{{ user.email }}">{{ user.email }}</a></td>
+          <td>{{ user.phone }}</td>
+          <td>{{ user.created_at.strftime("%d/%m/%Y") }}</td>
+          <td>
+            <form method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+              data-confirm="Remover {{ user.name }}? Os pedidos desse usuário também serão excluídos."><button
+                class="danger-button" type="submit">Remover cadastro</button></form>
+          </td>
+        </tr>{% else %}<tr>
+          <td colspan="5">Nenhum cliente cadastrado.</td>
+        </tr>{% endfor %}</tbody>
+    </table>
+  </div>
+</section>
+
+
+<section class="admin-section" id="cupons">
+  <div class="admin-section-title">
+    <div>
+      <p class="eyebrow">Promoções</p>
+      <h2>Cupons</h2>
+    </div><span>{{ coupons|length }} cadastrados</span>
+  </div>
+  <form class="coupon-admin-form" method="post" action="{{ url_for('admin.create_coupon') }}"><label>Código<input
+        name="code" placeholder="EXEMPLO10" maxlength="40" required></label><label>Tipo<select name="discount_type"
+        required>
+        <option value="percentage">Porcentagem</option>
+        <option value="fixed">Valor fixo</option>
+      </select></label><label>Desconto<input name="discount_value" inputmode="decimal" placeholder="10,00"
+        required></label><label>Compra mínima<input name="minimum_amount" inputmode="decimal" value="0,00"
+        required></label><label>Validade<input type="date" name="expires_at"></label><label class="check"><input
+        type="checkbox" name="first_order_only">Somente primeira compra</label><label class="check"><input
+        type="checkbox" name="active" checked>Ativo</label><button class="button" type="submit">Adicionar cupom</button>
+  </form>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Desconto</th>
+          <th>Mínimo</th>
+          <th>Validade</th>
+          <th>Condição</th>
+          <th>Situação</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody>{% for coupon in coupons %}<tr>
+          <td><strong>{{ coupon.code }}</strong></td>
+          <td>{{ ("%.2f"|format(coupon.discount_value)|replace(".", ",") ~ "%") if coupon.discount_type == "percentage"
+            else ("R$ " ~ "%.2f"|format(coupon.discount_value)|replace(".", ",")) }}</td>
+          <td>R$ {{ "%.2f"|format(coupon.minimum_amount)|replace(".", ",") }}</td>
+          <td>{{ coupon.expires_at.strftime("%d/%m/%Y") if coupon.expires_at else "Sem validade" }}</td>
+          <td>{{ "Primeira compra" if coupon.first_order_only else "Todas as compras" }}</td>
+          <td><span class="status">{{ "Ativo" if coupon.active else "Inativo" }}</span></td>
+          <td>
+            <form method="post" action="{{ url_for('admin.delete_coupon', coupon_id=coupon.id) }}"
+              data-confirm="Remover o cupom {{ coupon.code }}?"><button class="danger-button"
+                type="submit">Remover</button></form>
+          </td>
+        </tr>{% else %}<tr>
+          <td colspan="7">Nenhum cupom cadastrado.</td>
+        </tr>{% endfor %}</tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

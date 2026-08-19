@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Meus pedidos · Coffee Time{% endblock %}
+
+{% block content %}
+<header class="page-title">
+  <p class="eyebrow">Acompanhe suas compras</p>
+  <h1>Meus pedidos</h1>
+</header>
+
+<div class="order-list">
+  {% for order in orders %}
+  <a class="order-row" href="{{ url_for('shop.order_detail', order_id=order.id) }}">
+    <div>
+      <strong>Pedido #{{ order.id }}</strong>
+      <small>{{ order.created_at.strftime("%d/%m/%Y às %H:%M") }}</small>
+    </div>
+    <span class="status">{{ order.status|capitalize }}</span>
+    <strong>R$ {{ "%.2f"|format(order.total)|replace(".", ",") }}</strong>
+  </a>
+  {% else %}
+  <div class="empty">
+    <h2>Você ainda não fez pedidos</h2>
+    <a class="button" href="{{ url_for('shop.catalog') }}">Escolher produtos</a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

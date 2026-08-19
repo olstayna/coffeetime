@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Pedido #{{ order.id }} · Coffee Time{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{{ url_for('shop.orders') }}">← Meus pedidos</a>
+
+<header class="page-title">
+  <p class="eyebrow">Pedido #{{ order.id }}</p>
+  <h1>{{ order.status|capitalize }}</h1>
+  <p>Realizado em {{ order.created_at.strftime("%d/%m/%Y às %H:%M") }}</p>
+</header>
+
+<div class="two-columns">
+  <section class="panel">
+    <h2>Itens</h2>
+    {% for item in order["items"] %}
+    <div class="line">
+      <span>{{ item.quantity }}× {{ item.product_name }}</span>
+      <strong>R$ {{ "%.2f"|format(item.subtotal)|replace(".", ",") }}</strong>
+    </div>
+    {% endfor %}
+  </section>
+
+  <aside class="summary">
+    <h2>Entrega</h2>
+    <p>
+      {{ order.street }}, {{ order.number }}<br>
+      {{ order.district }} · {{ order.city }}<br>
+      CEP {{ order.postal_code }}
+    </p>
+    <p>Pagamento: {{ order.payment_method|title }}</p>
+    <div class="total">
+      <span>Total</span>
+      <strong>R$ {{ "%.2f"|format(order.total)|replace(".", ",") }}</strong>
+    </div>
+  </aside>
+</div>
+{% endblock %}
