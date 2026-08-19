@@ -4,8 +4,8 @@
   <h1>Seu carrinho</h1>
 </header>
 {% if items %}<div class="two-columns">
-  <section class="panel cart-list">{% for item in items %}<article class="cart-item"><img
-        class="cart-thumb" src="{{ item.product|image_data_uri }}" alt="{{ item.product.name }}">
+  <section class="panel cart-list">{% for item in items %}<article class="cart-item"><img class="cart-thumb"
+        src="{{ item.product|image_data_uri }}" alt="{{ item.product.name }}">
       <div class="grow"><small>{{ item.product.category }}</small>
         <h3>{{ item.product.name }}</h3><span>R$ {{ "%.2f"|format(item.product.price)|replace(".", ",") }} cada</span>
       </div>

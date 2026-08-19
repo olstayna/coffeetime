@@ -2,6 +2,11 @@
 
 E-commerce acadêmico para cafeteria, desenvolvido com Flask, MySQL, HTML, CSS e JavaScript. O sistema possui catálogo responsivo, autenticação, carrinho, checkout, acompanhamento de pedidos e painel administrativo.
 
+Todos os direitos reservados. Projeto construído por Tayná Santana - [olstayna](https://github.com/olstayna), para a disciplina de Projeto Integrador Transdisciplinar em Sistemas de Informação II do curso Sistemas de Informação, 8º semestre, da Universidade Cidade de São Paulo.
+
+Meu [Linkedin](https://www.linkedin.com/in/olstayna/) e
+[Portfólio](https://taynasantana.com.br/);
+
 ## Funcionalidades
 
 ### Clientes
@@ -53,6 +58,7 @@ coffeetime/
 │   ├── requirements.txt
 │   └── run.py
 ├── database/
+│   ├── images/
 │   └── schema.sql
 ├── frontend/
 │   ├── static/
@@ -153,6 +159,10 @@ python -m unittest discover -v
 ```
 
 Os testes cobrem carrinho, totais, opções de pagamento, fluxo de status, validação de CEP e regras de cupons de primeira compra.
+
+## Deploy
+
+O projeto do CoffeeTime está disponível no link https://coffeetime-7qu2.onrender.com/, com deploy da aplicação no [Render](https://render.com/) e o banco de dados My-SQL disponibilizado através do [Aiven](https://aiven.io/), sendo uma alternativa gratuita e acessível para este projeto acadêmico.
 
 ## Observações
 

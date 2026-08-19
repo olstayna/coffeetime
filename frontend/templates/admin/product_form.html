@@ -1,4 +1,19 @@
 {% extends "base.html" %}{% block title %}Produto · CoffeeTime{% endblock %}{% block content %}
 <a class="back-link" href="{{ url_for('admin.dashboard') }}">← Voltar ao painel</a>
-<section class="auth-card wide-card"><p class="eyebrow">Catálogo</p><h1>{{ "Editar" if product else "Novo" }} produto</h1><form method="post" enctype="multipart/form-data"><label>Nome<input name="name" value="{{ product.name if product else '' }}" required></label><label>Categoria<input name="category" value="{{ product.category if product else '' }}" required></label><label>Preço<input name="price" inputmode="decimal" value="{{ product.price if product else '' }}" required></label><label class="image-upload">Imagem do produto{% if product %}<span class="current-product-image"><img src="{{ product|image_data_uri }}" alt="Imagem atual de {{ product.name }}"><small>Imagem atual</small></span>{% endif %}<input type="file" name="image" accept="image/jpeg,image/png,image/webp" {{ 'required' if not product }}><small>{{ 'Escolha uma nova imagem somente se quiser substituir a atual.' if product else 'Formatos aceitos: JPG, PNG ou WebP. Máximo de 5 MB.' }}</small></label><label>Descrição<textarea name="description" rows="4" required>{{ product.description if product else '' }}</textarea></label><label class="check"><input type="checkbox" name="active" {{ "checked" if not product or product.active }}>Disponível no cardápio</label><button class="button full" type="submit">Salvar produto</button></form></section>
+<section class="auth-card wide-card">
+  <p class="eyebrow">Catálogo</p>
+  <h1>{{ "Editar" if product else "Novo" }} produto</h1>
+  <form method="post" enctype="multipart/form-data"><label>Nome<input name="name"
+        value="{{ product.name if product else '' }}" required></label><label>Categoria<input name="category"
+        value="{{ product.category if product else '' }}" required></label><label>Preço<input name="price"
+        inputmode="decimal" value="{{ product.price if product else '' }}" required></label><label
+      class="image-upload">Imagem do produto{% if product %}<span class="current-product-image"><img
+          src="{{ product|image_data_uri }}" alt="Imagem atual de {{ product.name }}"><small>Imagem
+          atual</small></span>{% endif %}<input type="file" name="image" accept="image/jpeg,image/png,image/webp"
+        {{ 'required' if not product }}><small>{{ 'Escolha uma nova imagem somente se quiser substituir a atual.' if
+        product else 'Formatos aceitos: JPG, PNG ou WebP. Máximo de 5 MB.' }}</small></label><label>Descrição<textarea
+        name="description" rows="4" required>{{ product.description if product else '' }}</textarea></label><label
+      class="check"><input type="checkbox" name="active" {{ "checked" if not product or product.active }}>Disponível no
+      cardápio</label><button class="button full" type="submit">Salvar produto</button></form>
+</section>
 {% endblock %}
