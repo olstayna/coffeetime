@@ -61,7 +61,8 @@
           <td><span class="status">{{ order.status|capitalize }}</span></td>
           <td>{% if next_index < flow|length %}<form method="post"
               action="{{ url_for('admin.update_order_status', order_id=order.id) }}"><input type="hidden" name="status"
-                value="{{ flow[next_index] }}"><button class="small-button" type="submit">Marcar: {{ flow[next_index]|capitalize
+                value="{{ flow[next_index] }}"><button class="small-button" type="submit">Marcar: {{
+                flow[next_index]|capitalize
                 }}</button></form>{% else %}Concluído{% endif %}</td>
         </tr>{% else %}<tr>
           <td colspan="5">Nenhum pedido recebido.</td>

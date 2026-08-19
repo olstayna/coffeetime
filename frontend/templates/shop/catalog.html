@@ -1,7 +1,59 @@
 {% extends "base.html" %}{% block content %}
-<section class="hero"><div class="hero-content"><p class="eyebrow">Café especial · Feito na hora</p><h1>Seu momento.<br><em>Seu café.</em></h1><p>Da origem à xícara: cafés, grãos e receitas feitos para transformar a sua pausa.</p><div class="hero-actions"><a class="button button-accent" href="#cardapio">Ver cardápio <span>→</span></a><div class="rating"><b>4,9</b><span>★★★★★<small>+500 clientes felizes</small></span></div></div></div><div class="hero-visual">{% if featured %}<img src="{{ featured|image_data_uri }}" alt="{{ featured.name }}">{% endif %}<span class="hero-stamp">Feito<br><b>com grãos premium</b></span><span class="hero-caption">Café especial<br><b>Torra fresca, sabor de verdade</b></span></div></section>
-<section class="benefits" aria-label="Nossos diferenciais"><div><b>01</b><span><strong>Grãos selecionados</strong><small>Origem e qualidade em cada xícara</small></span></div><div><b>02</b><span><strong>Feito na hora</strong><small>Frescor que você sente no sabor</small></span></div><div><b>03</b><span><strong>Entrega rápida</strong><small>Seu pedido quentinho até você</small></span></div></section>
-<section class="catalog-toolbar" id="cardapio"><header class="section-heading"><div><p class="eyebrow">Escolha o seu</p><h2>Favoritos da casa</h2></div><p>Receitas autorais e clássicos que<br>fazem parte de bons momentos.</p></header><form class="filters" method="get" data-live-filter><label class="search-field"><span class="sr-only">Buscar</span><input type="search" name="q" value="{{ search }}" placeholder="Buscar no cardápio..." autocomplete="off"></label><label><span class="sr-only">Categoria</span><select name="category"><option value="">Todas as categorias</option>{% for category in categories %}<option {{ "selected" if selected_category == category }}>{{ category }}</option>{% endfor %}</select></label><button class="button" type="submit">Filtrar</button>{% if search or selected_category %}<a class="button button-ghost" href="{{ url_for('shop.catalog') }}#cardapio">Limpar</a>{% endif %}</form></section>
-<div class="product-grid">{% for product in products %}<article class="product-card"><a class="product-image" href="{{ url_for('shop.product_detail', product_id=product.id) }}"><img src="{{ product|image_data_uri }}" alt="{{ product.name }}" loading="lazy"><small>{{ product.category }}</small></a><div class="product-body"><h3><a href="{{ url_for('shop.product_detail', product_id=product.id) }}">{{ product.name }}</a></h3><p>{{ product.description }}</p><div class="product-price"><strong>R$ {{ "%.2f"|format(product.price)|replace(".", ",") }}</strong><span>unidade</span></div><form class="quick-add js-add-cart" method="post" action="{{ url_for('shop.add_to_cart', product_id=product.id) }}"><div class="quantity-picker"><button type="button" data-step="-1" aria-label="Diminuir quantidade">−</button><label class="sr-only" for="qty-{{ product.id }}">Quantidade</label><input id="qty-{{ product.id }}" type="number" name="quantity" min="1" max="99" value="1" inputmode="numeric"><button type="button" data-step="1" aria-label="Aumentar quantidade">+</button></div><button class="add-button" type="submit">Adicionar</button></form></div></article>{% else %}<div class="empty"><h2>Nenhum produto encontrado</h2><p>Tente alterar ou remover os filtros.</p><a class="button" href="{{ url_for('shop.catalog') }}">Limpar filtros</a></div>{% endfor %}</div>
+<section class="hero">
+  <div class="hero-content">
+    <p class="eyebrow">Café especial · Feito na hora</p>
+    <h1>Seu momento.<br><em>Seu café.</em></h1>
+    <p>Da origem à xícara: cafés, grãos e receitas feitos para transformar a sua pausa.</p>
+    <div class="hero-actions"><a class="button button-accent" href="#cardapio">Ver cardápio <span>→</span></a>
+      <div class="rating"><b>4,9</b><span>★★★★★<small>+500 clientes felizes</small></span></div>
+    </div>
+  </div>
+  <div class="hero-visual">{% if featured %}<img src="{{ featured|image_data_uri }}" alt="{{ featured.name }}">{% endif
+    %}<span class="hero-stamp">Feito<br><b>com grãos premium</b></span><span class="hero-caption">Café
+      especial<br><b>Torra fresca, sabor de verdade</b></span></div>
+</section>
+<section class="benefits" aria-label="Nossos diferenciais">
+  <div><b>01</b><span><strong>Grãos selecionados</strong><small>Origem e qualidade em cada xícara</small></span></div>
+  <div><b>02</b><span><strong>Feito na hora</strong><small>Frescor que você sente no sabor</small></span></div>
+  <div><b>03</b><span><strong>Entrega rápida</strong><small>Seu pedido quentinho até você</small></span></div>
+</section>
+<section class="catalog-toolbar" id="cardapio">
+  <header class="section-heading">
+    <div>
+      <p class="eyebrow">Escolha o seu</p>
+      <h2>Favoritos da casa</h2>
+    </div>
+    <p>Receitas autorais e clássicos que<br>fazem parte de bons momentos.</p>
+  </header>
+  <form class="filters" method="get" data-live-filter><label class="search-field"><span
+        class="sr-only">Buscar</span><input type="search" name="q" value="{{ search }}"
+        placeholder="Buscar no cardápio..." autocomplete="off"></label><label><span
+        class="sr-only">Categoria</span><select name="category">
+        <option value="">Todas as categorias</option>{% for category in categories %}<option {{ "selected" if
+          selected_category==category }}>{{ category }}</option>{% endfor %}
+      </select></label><button class="button" type="submit">Filtrar</button>{% if search or selected_category %}<a
+      class="button button-ghost" href="{{ url_for('shop.catalog') }}#cardapio">Limpar</a>{% endif %}</form>
+</section>
+<div class="product-grid">{% for product in products %}<article class="product-card"><a class="product-image"
+      href="{{ url_for('shop.product_detail', product_id=product.id) }}"><img src="{{ product|image_data_uri }}"
+        alt="{{ product.name }}" loading="lazy"><small>{{ product.category }}</small></a>
+    <div class="product-body">
+      <h3><a href="{{ url_for('shop.product_detail', product_id=product.id) }}">{{ product.name }}</a></h3>
+      <p>{{ product.description }}</p>
+      <div class="product-price"><strong>R$ {{ "%.2f"|format(product.price)|replace(".", ",")
+          }}</strong><span>unidade</span></div>
+      <form class="quick-add js-add-cart" method="post"
+        action="{{ url_for('shop.add_to_cart', product_id=product.id) }}">
+        <div class="quantity-picker"><button type="button" data-step="-1"
+            aria-label="Diminuir quantidade">−</button><label class="sr-only"
+            for="qty-{{ product.id }}">Quantidade</label><input id="qty-{{ product.id }}" type="number" name="quantity"
+            min="1" max="99" value="1" inputmode="numeric"><button type="button" data-step="1"
+            aria-label="Aumentar quantidade">+</button></div><button class="add-button" type="submit">Adicionar</button>
+      </form>
+    </div>
+  </article>{% else %}<div class="empty">
+    <h2>Nenhum produto encontrado</h2>
+    <p>Tente alterar ou remover os filtros.</p><a class="button" href="{{ url_for('shop.catalog') }}">Limpar filtros</a>
+  </div>{% endfor %}</div>
 <button class="scroll-top" type="button" aria-label="Voltar ao topo" title="Voltar ao topo">↑</button>
 {% endblock %}
