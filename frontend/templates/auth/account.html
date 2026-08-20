@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Minha conta · Coffee Time{% endblock %}
+
+{% block content %}
+<header class="page-title account-heading">
+  <p class="eyebrow">Olá, {{ session.get('user_name') }}</p>
+  <h1>Minha conta</h1>
+</header>
+
+<div class="account-layout">
+  {% include "shared/_account_menu.html" %}
+  <div class="account-content">
+    <section class="account-panel" aria-labelledby="personal-data-title">
+      <div class="account-panel-heading">
+        <p class="eyebrow">Seu cadastro</p>
+        <h2 id="personal-data-title">Dados pessoais</h2>
+        <p>{{ user.name }} · mantenha seus dados de contato atualizados.</p>
+      </div>
+      <form method="post" class="account-form">
+        <input type="hidden" name="intent" value="profile">
+        <label>E-mail
+          <input type="email" name="email" value="{{ user.email }}" autocomplete="email" required>
+        </label>
+        <label>Celular
+          <input type="tel" name="phone" value="{{ user.phone }}" autocomplete="tel" inputmode="numeric" maxlength="15"
+            data-phone-mask required>
+        </label>
+        <button class="button" type="submit">Salvar dados</button>
+      </form>
+    </section>
+
+    <section class="account-panel" aria-labelledby="password-title">
+      <div class="account-panel-heading">
+        <p class="eyebrow">Segurança</p>
+        <h2 id="password-title">Alterar senha</h2>
+        <p>Confirme sua senha atual antes de cadastrar uma nova.</p>
+      </div>
+      <form method="post" class="account-form password-change-form">
+        <input type="hidden" name="intent" value="password">
+        <label>Senha atual
+          <span class="password-field"><input type="password" name="current_password" autocomplete="current-password"
+              required><button class="password-toggle" type="button" aria-label="Mostrar senha"
+              aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg></button></span>
+        </label>
+        <label>Nova senha
+          <span class="password-field"><input type="password" name="new_password" minlength="8"
+              autocomplete="new-password" required><button class="password-toggle" type="button"
+              aria-label="Mostrar senha" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg></button></span>
+        </label>
+        <label>Confirmar nova senha
+          <span class="password-field"><input type="password" name="password_confirmation" minlength="8"
+              autocomplete="new-password" required><button class="password-toggle" type="button"
+              aria-label="Mostrar senha" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg></button></span>
+        </label>
+        <small>Use ao menos 8 caracteres, incluindo letras e números.</small>
+        <button class="button" type="submit">Alterar senha</button>
+      </form>
+    </section>
+  </div>
+</div>
+{% endblock %}

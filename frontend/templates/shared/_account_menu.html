@@ -1,0 +1,8 @@
+<nav class="account-menu" aria-label="Menu da minha conta">
+  <a class="{{ 'active' if account_section == 'profile' else '' }}" href="{{ url_for('auth.account') }}">
+    <span>Dados pessoais</span><small>Consulte e altere seu cadastro</small>
+  </a>
+  <a class="{{ 'active' if account_section == 'orders' else '' }}" href="{{ url_for('shop.orders') }}">
+    <span>Meus pedidos</span><small>Acompanhe suas compras</small>
+  </a>
+</nav>

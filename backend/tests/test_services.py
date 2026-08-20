@@ -4,7 +4,7 @@ from urllib.parse import urlsplit
 from unittest.mock import patch
 
 from flask import Flask, session
-from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import create_app
 from app.services import CartService, OrderService
@@ -242,6 +242,80 @@ class AuthSessionTest(unittest.TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(urlsplit(response.location).path, "/")
 
+    @patch("app.routes.auth.UserRepository.find")
+    def test_account_page_shows_profile_and_orders_menu(self, find_user):
+        find_user.return_value = {
+            "id": 7,
+            "name": "Cliente",
+            "email": "cliente@example.com",
+            "phone": "(11) 91234-5678",
+            "role": "customer",
+        }
+        with self.client.session_transaction() as logged_session:
+            logged_session.update(user_id=7, user_name="Cliente", role="customer")
+
+        response = self.client.get("/minha-conta")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Dados pessoais", response.data)
+        self.assertIn(b"Meus pedidos", response.data)
+        self.assertIn(b"cliente@example.com", response.data)
+
+    @patch("app.routes.auth.UserRepository.update_profile")
+    @patch("app.routes.auth.UserRepository.find")
+    def test_customer_can_update_profile(self, find_user, update_profile):
+        find_user.return_value = {
+            "id": 7,
+            "name": "Cliente",
+            "email": "cliente@example.com",
+            "password_hash": generate_password_hash("Senha123"),
+            "phone": "(11) 91234-5678",
+            "role": "customer",
+        }
+        with self.client.session_transaction() as logged_session:
+            logged_session.update(user_id=7, user_name="Cliente", role="customer")
+
+        response = self.client.post(
+            "/minha-conta",
+            data={
+                "intent": "profile",
+                "email": "atualizada@example.com",
+                "phone": "(21) 99876-5432",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.location.endswith("/minha-conta"))
+        update_profile.assert_called_once_with(7, "atualizada@example.com", "(21) 99876-5432")
+
+    @patch("app.routes.auth.UserRepository.update_password")
+    @patch("app.routes.auth.UserRepository.find")
+    def test_customer_can_change_password(self, find_user, update_password):
+        find_user.return_value = {
+            "id": 7,
+            "name": "Cliente",
+            "email": "cliente@example.com",
+            "password_hash": generate_password_hash("Senha123"),
+            "phone": "(11) 91234-5678",
+            "role": "customer",
+        }
+        with self.client.session_transaction() as logged_session:
+            logged_session.update(user_id=7, user_name="Cliente", role="customer")
+
+        response = self.client.post(
+            "/minha-conta",
+            data={
+                "intent": "password",
+                "current_password": "Senha123",
+                "new_password": "NovaSenha456",
+                "password_confirmation": "NovaSenha456",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        stored_hash = update_password.call_args.args[1]
+        self.assertEqual(update_password.call_args.args[0], 7)
+        self.assertTrue(check_password_hash(stored_hash, "NovaSenha456"))
 
 if __name__ == "__main__":
     unittest.main()

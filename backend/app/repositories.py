@@ -56,8 +56,26 @@ class UserRepository:
         return fetch_one("SELECT * FROM users WHERE email = %s", (email,))
 
     @staticmethod
+    def find(user_id):
+        return fetch_one("SELECT id, name, email, password_hash, phone, role, created_at FROM users WHERE id = %s", (user_id,))
+
+    @staticmethod
     def create(name, email, password_hash, phone):
         return execute("INSERT INTO users (name, email, password_hash, phone) VALUES (%s,%s,%s,%s)", (name, email, password_hash, phone))
+
+    @staticmethod
+    def update_profile(user_id, email, phone):
+        return execute(
+            "UPDATE users SET email=%s, phone=%s WHERE id=%s AND role='customer'",
+            (email, phone, user_id),
+        )
+
+    @staticmethod
+    def update_password(user_id, password_hash):
+        return execute(
+            "UPDATE users SET password_hash=%s WHERE id=%s AND role='customer'",
+            (password_hash, user_id),
+        )
 
     @staticmethod
     def delete_customer(user_id):
