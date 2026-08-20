@@ -1,8 +1,10 @@
 import unittest
 from decimal import Decimal
+from urllib.parse import urlsplit
 from unittest.mock import patch
 
 from flask import Flask, session
+from werkzeug.security import generate_password_hash
 
 from app import create_app
 from app.services import CartService, OrderService
@@ -136,6 +138,109 @@ class CartAjaxTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data["count"], 0)
         self.assertIn("Seu carrinho está vazio", data["preview_html"])
+
+
+class AuthSessionTest(unittest.TestCase):
+    def setUp(self):
+        self.app = create_app()
+        self.app.config.update(TESTING=True, SECRET_KEY="test")
+        self.client = self.app.test_client()
+
+    @patch("app.routes.auth.UserRepository.find_by_email")
+    def test_customer_login_preserves_guest_cart(self, find_by_email):
+        find_by_email.return_value = {
+            "id": 7,
+            "name": "Cliente",
+            "email": "cliente@example.com",
+            "password_hash": generate_password_hash("Senha123"),
+            "role": "customer",
+        }
+        with self.client.session_transaction() as guest_session:
+            guest_session["cart"] = {"1": 2, "6": 1}
+
+        response = self.client.post(
+            "/login",
+            data={"email": "cliente@example.com", "password": "Senha123"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        with self.client.session_transaction() as logged_session:
+            self.assertEqual(logged_session["user_id"], 7)
+            self.assertEqual(logged_session["cart"], {"1": 2, "6": 1})
+
+    def test_checkout_redirects_guest_to_login_with_return_url(self):
+        response = self.client.get("/checkout")
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.location.endswith("/login?next=/checkout"))
+
+    @patch("app.routes.auth.UserRepository.create")
+    def test_registration_preserves_checkout_return_url_and_cart(self, create_user):
+        with self.client.session_transaction() as guest_session:
+            guest_session["cart"] = {"1": 2}
+
+        response = self.client.post(
+            "/cadastro",
+            data={
+                "name": "Nova Cliente",
+                "email": "nova@example.com",
+                "phone": "(11) 91234-5678",
+                "password": "Senha123",
+                "next": "/checkout",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.location.endswith("/login?next=/checkout"))
+        create_user.assert_called_once()
+        with self.client.session_transaction() as guest_session:
+            self.assertEqual(guest_session["cart"], {"1": 2})
+
+    @patch("app.routes.auth.UserRepository.find_by_email")
+    def test_login_returns_customer_to_checkout(self, find_by_email):
+        find_by_email.return_value = {
+            "id": 7,
+            "name": "Cliente",
+            "email": "cliente@example.com",
+            "password_hash": generate_password_hash("Senha123"),
+            "role": "customer",
+        }
+        with self.client.session_transaction() as guest_session:
+            guest_session["cart"] = {"1": 2}
+
+        response = self.client.post(
+            "/login",
+            data={
+                "email": "cliente@example.com",
+                "password": "Senha123",
+                "next": "/checkout",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.location.endswith("/checkout"))
+
+    @patch("app.routes.auth.UserRepository.find_by_email")
+    def test_login_rejects_external_return_url(self, find_by_email):
+        find_by_email.return_value = {
+            "id": 7,
+            "name": "Cliente",
+            "email": "cliente@example.com",
+            "password_hash": generate_password_hash("Senha123"),
+            "role": "customer",
+        }
+
+        response = self.client.post(
+            "/login",
+            data={
+                "email": "cliente@example.com",
+                "password": "Senha123",
+                "next": "https://example.com",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(urlsplit(response.location).path, "/")
 
 
 if __name__ == "__main__":

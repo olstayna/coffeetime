@@ -8,6 +8,7 @@
   <h1>Entre na sua conta</h1>
 
   <form method="post">
+    {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
     <label>
       E-mail
       <input type="email" name="email" autocomplete="email" required>
@@ -26,6 +27,6 @@
     <button class="button full" type="submit">Entrar</button>
   </form>
 
-  <p>Ainda não tem conta? <a href="{{ url_for('auth.register') }}">Cadastre-se</a></p>
+  <p>Ainda não tem conta? <a href="{{ url_for('auth.register', next=next_url) if next_url else url_for('auth.register') }}">Cadastre-se</a></p>
 </section>
 {% endblock %}

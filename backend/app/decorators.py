@@ -1,6 +1,6 @@
 from functools import wraps
 
-from flask import flash, redirect, session, url_for
+from flask import flash, redirect, request, session, url_for
 
 
 def login_required(view):
@@ -8,7 +8,7 @@ def login_required(view):
     def wrapped(*args, **kwargs):
         if not session.get("user_id"):
             flash("Entre na sua conta para continuar.", "warning")
-            return redirect(url_for("auth.login"))
+            return redirect(url_for("auth.login", next=request.full_path.rstrip("?")))
         return view(*args, **kwargs)
     return wrapped
 
