@@ -13,11 +13,14 @@ Meu [Linkedin](https://www.linkedin.com/in/olstayna/) e
 
 - cadastro e autenticação;
 - máscara e validação de celular;
+- área Minha Conta para atualização de e-mail, celular e senha;
 - catálogo com busca instantânea e filtro por categoria;
 - detalhes do produto e recomendações aleatórias;
-- carrinho com ajuste de quantidade;
-- cupons de desconto e regras de primeira compra;
+- carrinho preservado durante login e cadastro, com preview atualizado sem recarregar a página;
+- cupons de desconto no carrinho e no checkout;
+- cupons exclusivos para primeira compra ou limitados a uma utilização por cliente;
 - checkout com máscara e validação de CEP;
+- retorno automático ao checkout após autenticação ou criação da conta;
 - histórico e acompanhamento de pedidos;
 - tema claro e escuro.
 
@@ -27,7 +30,7 @@ Meu [Linkedin](https://www.linkedin.com/in/olstayna/) e
 - upload de imagens armazenadas como `LONGBLOB` no MySQL;
 - ativação e inativação de produtos;
 - criação e remoção de cupons;
-- configuração de desconto percentual ou fixo, compra mínima, validade e primeira compra;
+- configuração de desconto percentual ou fixo, compra mínima, validade, primeira compra e uso único por cliente;
 - listagem e remoção de clientes;
 - acompanhamento e atualização sequencial do status dos pedidos.
 
@@ -68,7 +71,12 @@ coffeetime/
 │   └── templates/
 │       ├── admin/
 │       ├── auth/
-│       └── shop/
+│       ├── shared/
+│       │   ├── _account_menu.html
+│       │   ├── _cart_preview.html
+│       │   └── _checkout_summary.html
+│       ├── shop/
+│       └── base.html
 ├── .gitignore
 └── README.md
 ```
@@ -136,6 +144,21 @@ Esse comando:
 - cria o administrador definido no `.env`;
 - armazena senhas exclusivamente como hash.
 
+O `init-db` também pode ser executado novamente após uma atualização do projeto. As operações usam `CREATE TABLE IF NOT EXISTS`, `INSERT IGNORE` e verificações das colunas existentes, preservando os registros atuais enquanto adicionam alterações de estrutura.
+
+Depois de atualizar o código, execute novamente:
+
+```powershell
+cd backend
+python -m flask --app run.py init-db
+```
+
+Em produção, execute o comando com as variáveis do banco de produção. Se o banco estiver no Aiven, confirme antes que `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` e `DB_PASSWORD` apontam para o serviço correto. A mensagem esperada é:
+
+```text
+Banco criado e dados iniciais inseridos.
+```
+
 As imagens não ficam no frontend. O administrador deve enviá-las pelo formulário de produto; os bytes são armazenados em `products.image_data` e o MIME type em `products.image_mime`.
 
 ## Execução
@@ -155,14 +178,14 @@ O painel administrativo fica em `/admin` e utiliza `ADMIN_EMAIL` e `ADMIN_PASSWO
 Dentro de `backend`:
 
 ```powershell
-python -m unittest discover -v
+python -m unittest discover -s tests -v
 ```
 
-Os testes cobrem carrinho, totais, opções de pagamento, fluxo de status, validação de CEP e regras de cupons de primeira compra.
+Os testes cobrem carrinho e preview assíncrono, preservação da sessão, autenticação, retorno ao checkout, configurações da conta, alteração de senha, aplicação de cupom no checkout, regras de primeira compra e uso único por cliente, totais, opções de pagamento, validação de CEP e fluxo de status.
 
 ## Deploy
 
-O projeto do CoffeeTime está disponível no link https://coffeetime-7qu2.onrender.com/, com deploy da aplicação no [Render](https://render.com/) e o banco de dados My-SQL disponibilizado através do [Aiven](https://aiven.io/), sendo uma alternativa gratuita e acessível para este projeto acadêmico.
+O projeto do CoffeeTime está disponível em [coffeetime-7qu2.onrender.com](https://coffeetime-7qu2.onrender.com/), com a aplicação Flask hospedada no [Render](https://render.com/) e o banco MySQL disponibilizado pelo [Aiven](https://aiven.io/).
 
 ## Observações
 

@@ -112,6 +112,31 @@ document.addEventListener("submit", (event) => {
   if (form && !window.confirm(form.dataset.confirm)) event.preventDefault();
 });
 
+const logoutDialog = document.querySelector("[data-logout-dialog]");
+let pendingLogoutForm = null;
+document.addEventListener("submit", (event) => {
+  const form = event.target.closest(".js-logout");
+  if (!form || !logoutDialog) return;
+  event.preventDefault();
+  pendingLogoutForm = form;
+  logoutDialog.showModal();
+});
+logoutDialog?.querySelectorAll("[data-logout-cancel]").forEach((button) =>
+  button.addEventListener("click", () => {
+    pendingLogoutForm = null;
+    logoutDialog.close();
+  }),
+);
+logoutDialog?.querySelector("[data-logout-confirm]")?.addEventListener("click", () => {
+  const form = pendingLogoutForm;
+  pendingLogoutForm = null;
+  logoutDialog.close();
+  form?.submit();
+});
+logoutDialog?.addEventListener("cancel", () => {
+  pendingLogoutForm = null;
+});
+
 document.addEventListener("submit", async (event) => {
   const form = event.target.closest(".js-add-cart");
   if (!form) return;
@@ -153,6 +178,29 @@ document.addEventListener("submit", async (event) => {
   } catch (error) {
     button.disabled = false;
     showToast(error.message || "Não foi possível atualizar o carrinho.", "error");
+  }
+});
+
+document.addEventListener("submit", async (event) => {
+  const form = event.target.closest(".js-checkout-coupon");
+  if (!form) return;
+  event.preventDefault();
+  const button = form.querySelector('[type="submit"]');
+  button.disabled = true;
+  try {
+    const response = await fetch(form.action, {
+      method: "POST",
+      body: new FormData(form),
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message);
+    const summary = document.querySelector("[data-checkout-summary]");
+    if (summary && data.summary_html) summary.innerHTML = data.summary_html;
+    showToast(data.message);
+  } catch (error) {
+    button.disabled = false;
+    showToast(error.message || "Não foi possível aplicar o cupom.", "error");
   }
 });
 

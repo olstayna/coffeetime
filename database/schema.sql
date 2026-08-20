@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS coupons (
     minimum_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
     expires_at DATETIME NULL,
     first_order_only BOOLEAN NOT NULL DEFAULT FALSE,
+    once_per_user BOOLEAN NOT NULL DEFAULT FALSE,
     active BOOLEAN NOT NULL DEFAULT TRUE,
     CONSTRAINT chk_coupon_value CHECK (discount_value > 0)
 );

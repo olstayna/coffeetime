@@ -73,6 +73,54 @@ class CartServiceTest(unittest.TestCase):
 
         self.assertEqual(session["coupon_code"], "BEMVINDO10")
 
+    @patch("app.services.CartService.details", return_value=([], Decimal("40.00")))
+    @patch("app.services.CouponRepository.find_valid")
+    def test_first_order_coupon_is_saved_as_pending_for_guest(self, find_coupon, _details):
+        find_coupon.return_value = {
+            "code": "BEMVINDO10",
+            "first_order_only": True,
+            "minimum_amount": Decimal("20.00"),
+        }
+
+        with self.assertRaisesRegex(ValueError, "Entre na sua conta"):
+            CartService.apply_coupon("BEMVINDO10")
+
+        self.assertEqual(session["pending_coupon_code"], "BEMVINDO10")
+
+    @patch("app.services.OrderRepository.has_used_coupon", return_value=True)
+    @patch("app.services.CartService.details", return_value=([], Decimal("40.00")))
+    @patch("app.services.CouponRepository.find_valid")
+    def test_once_per_user_coupon_rejects_second_use(self, find_coupon, _details, _has_used):
+        find_coupon.return_value = {
+            "code": "CLIENTE10",
+            "first_order_only": False,
+            "once_per_user": True,
+            "minimum_amount": Decimal("20.00"),
+        }
+        session["user_id"] = 10
+
+        with self.assertRaisesRegex(ValueError, "já foi utilizado"):
+            CartService.apply_coupon("CLIENTE10")
+
+    @patch("app.services.OrderRepository.has_used_coupon", return_value=False)
+    @patch("app.services.OrderRepository.has_orders_for_user", return_value=True)
+    @patch("app.services.CartService.details", return_value=([], Decimal("40.00")))
+    @patch("app.services.CouponRepository.find_valid")
+    def test_once_per_user_coupon_accepts_returning_customer(
+        self, find_coupon, _details, _has_orders, _has_used
+    ):
+        find_coupon.return_value = {
+            "code": "CLIENTE10",
+            "first_order_only": False,
+            "once_per_user": True,
+            "minimum_amount": Decimal("20.00"),
+        }
+        session["user_id"] = 10
+
+        CartService.apply_coupon("CLIENTE10")
+
+        self.assertEqual(session["coupon_code"], "CLIENTE10")
+
 
 class OrderServiceTest(unittest.TestCase):
     def test_status_flow_has_expected_order(self):
@@ -139,6 +187,78 @@ class CartAjaxTest(unittest.TestCase):
         self.assertEqual(data["count"], 0)
         self.assertIn("Seu carrinho está vazio", data["preview_html"])
 
+    @patch("app.routes.shop.CartService.apply_coupon")
+    @patch("app.routes.shop.CartService.summary")
+    def test_checkout_coupon_ajax_returns_recalculated_summary(self, summary, apply_coupon):
+        coupon = {
+            "code": "BEMVINDO10",
+            "discount_type": "percentage",
+            "discount_value": Decimal("10.00"),
+        }
+        apply_coupon.return_value = coupon
+        summary.return_value = {
+            "items": [{"product": self.product, "quantity": 2, "subtotal": Decimal("14.00")}],
+            "subtotal": Decimal("14.00"),
+            "coupon": coupon,
+            "discount": Decimal("1.40"),
+            "total": Decimal("12.60"),
+        }
+
+        response = self.client.post(
+            "/carrinho/cupom",
+            data={"coupon": "BEMVINDO10", "return_to": "checkout"},
+            headers={"X-Requested-With": "XMLHttpRequest"},
+        )
+
+        data = response.get_json()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Cupom BEMVINDO10", data["summary_html"])
+        self.assertIn("12,60", data["summary_html"])
+
+    @patch("app.routes.shop.CartService.summary")
+    def test_checkout_displays_coupon_input(self, summary):
+        summary.return_value = {
+            "items": [{"product": self.product, "quantity": 1, "subtotal": Decimal("7.00")}],
+            "subtotal": Decimal("7.00"),
+            "coupon": None,
+            "discount": Decimal("0.00"),
+            "total": Decimal("7.00"),
+        }
+        with self.client.session_transaction() as logged_session:
+            logged_session.update(user_id=7, user_name="Cliente", role="customer")
+
+        response = self.client.get("/checkout")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'id="checkout-coupon"', response.data)
+        self.assertIn(b'form="checkout-form"', response.data)
+
+    @patch("app.routes.shop.CartService.apply_coupon")
+    @patch("app.routes.shop.CartService.summary")
+    def test_checkout_automatically_applies_pending_coupon(self, summary, apply_coupon):
+        apply_coupon.return_value = {"code": "BEMVINDO10"}
+        summary.return_value = {
+            "items": [{"product": self.product, "quantity": 1, "subtotal": Decimal("7.00")}],
+            "subtotal": Decimal("7.00"),
+            "coupon": None,
+            "discount": Decimal("0.00"),
+            "total": Decimal("7.00"),
+        }
+        with self.client.session_transaction() as logged_session:
+            logged_session.update(
+                user_id=7,
+                user_name="Cliente",
+                role="customer",
+                pending_coupon_code="BEMVINDO10",
+            )
+
+        response = self.client.get("/checkout")
+
+        self.assertEqual(response.status_code, 200)
+        apply_coupon.assert_called_once_with("BEMVINDO10")
+        with self.client.session_transaction() as logged_session:
+            self.assertNotIn("pending_coupon_code", logged_session)
+
 
 class AuthSessionTest(unittest.TestCase):
     def setUp(self):
@@ -157,6 +277,7 @@ class AuthSessionTest(unittest.TestCase):
         }
         with self.client.session_transaction() as guest_session:
             guest_session["cart"] = {"1": 2, "6": 1}
+            guest_session["pending_coupon_code"] = "BEMVINDO10"
 
         response = self.client.post(
             "/login",
@@ -167,12 +288,24 @@ class AuthSessionTest(unittest.TestCase):
         with self.client.session_transaction() as logged_session:
             self.assertEqual(logged_session["user_id"], 7)
             self.assertEqual(logged_session["cart"], {"1": 2, "6": 1})
+            self.assertEqual(logged_session["pending_coupon_code"], "BEMVINDO10")
 
     def test_checkout_redirects_guest_to_login_with_return_url(self):
         response = self.client.get("/checkout")
 
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response.location.endswith("/login?next=/checkout"))
+
+    def test_logout_clears_session_without_success_toast(self):
+        with self.client.session_transaction() as logged_session:
+            logged_session.update(user_id=7, user_name="Cliente", role="customer")
+
+        response = self.client.post("/sair")
+
+        self.assertEqual(response.status_code, 302)
+        with self.client.session_transaction() as logged_session:
+            self.assertNotIn("user_id", logged_session)
+            self.assertNotIn("_flashes", logged_session)
 
     @patch("app.routes.auth.UserRepository.create")
     def test_registration_preserves_checkout_return_url_and_cart(self, create_user):

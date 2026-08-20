@@ -22,6 +22,15 @@ def cart_ajax_response(message):
     )
 
 
+def checkout_coupon_response(message):
+    summary = CartService.summary()
+    return jsonify(
+        ok=True,
+        message=message,
+        summary_html=render_template("shared/_checkout_summary.html", **summary),
+    )
+
+
 @shop_bp.get("/")
 def catalog():
     search = request.args.get("q", "").strip()
@@ -90,22 +99,37 @@ def adjust_cart(product_id):
 def apply_coupon():
     try:
         coupon = CartService.apply_coupon(request.form.get("coupon", ""))
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return checkout_coupon_response(f"Cupom {coupon['code']} aplicado!")
         flash(f"Cupom {coupon['code']} aplicado!", "success")
     except ValueError as error:
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return jsonify(ok=False, message=str(error)), 400
         flash(str(error), "error")
-    return redirect(url_for("shop.cart"))
+    destination = "shop.checkout" if request.form.get("return_to") == "checkout" else "shop.cart"
+    return redirect(url_for(destination))
 
 
 @shop_bp.post("/carrinho/cupom/remover")
 def remove_coupon():
     session.pop("coupon_code", None)
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return checkout_coupon_response("Cupom removido.")
     flash("Cupom removido.", "success")
-    return redirect(url_for("shop.cart"))
+    destination = "shop.checkout" if request.form.get("return_to") == "checkout" else "shop.cart"
+    return redirect(url_for(destination))
 
 
 @shop_bp.route("/checkout", methods=["GET", "POST"])
 @login_required
 def checkout():
+    pending_coupon_code = session.pop("pending_coupon_code", None)
+    if pending_coupon_code:
+        try:
+            coupon = CartService.apply_coupon(pending_coupon_code)
+            flash(f"Cupom {coupon['code']} aplicado automaticamente!", "success")
+        except ValueError as error:
+            flash(str(error), "error")
     summary = CartService.summary()
     items, total = summary["items"], summary["total"]
     if not items:

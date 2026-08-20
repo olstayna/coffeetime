@@ -67,12 +67,24 @@
         </div>{% endif %}
       </div>
       {% if session.get('user_id') %}
-      <form action="{{ url_for('auth.logout') }}" method="post">
+      <form class="js-logout" action="{{ url_for('auth.logout') }}" method="post">
         <button class="link-button" type="submit">Sair</button>
       </form>
       {% endif %}
     </nav>
   </header>
+  {% if session.get('user_id') %}
+  <dialog class="logout-dialog" data-logout-dialog aria-labelledby="logout-dialog-title">
+    <button class="dialog-close" type="button" data-logout-cancel aria-label="Fechar">×</button>
+    <span class="dialog-icon" aria-hidden="true">↗</span>
+    <h2 id="logout-dialog-title">Deseja sair?</h2>
+    <p>Tem certeza de que deseja sair da sua conta?</p>
+    <div class="dialog-actions">
+      <button class="button button-ghost" type="button" data-logout-cancel>Cancelar</button>
+      <button class="button" type="button" data-logout-confirm>Sim, sair</button>
+    </div>
+  </dialog>
+  {% endif %}
   <main class="container" id="conteudo">
     {% block content %}{% endblock %}
   </main>

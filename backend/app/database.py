@@ -61,6 +61,9 @@ def init_database_command():
                 cursor.execute("SHOW COLUMNS FROM coupons LIKE 'first_order_only'")
                 if not cursor.fetchone():
                     cursor.execute("ALTER TABLE coupons ADD COLUMN first_order_only BOOLEAN NOT NULL DEFAULT FALSE AFTER expires_at")
+    cursor.execute("SHOW COLUMNS FROM coupons LIKE 'once_per_user'")
+    if not cursor.fetchone():
+        cursor.execute("ALTER TABLE coupons ADD COLUMN once_per_user BOOLEAN NOT NULL DEFAULT FALSE AFTER first_order_only")
     cursor.execute("SHOW COLUMNS FROM orders LIKE 'coupon_code'")
     if not cursor.fetchone():
         cursor.execute("ALTER TABLE orders ADD COLUMN coupon_code VARCHAR(40) NULL")
