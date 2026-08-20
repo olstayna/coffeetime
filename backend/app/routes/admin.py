@@ -57,6 +57,7 @@ def create_coupon():
             "minimum_amount": minimum_amount,
             "expires_at": expires_at,
             "first_order_only": "first_order_only" in request.form,
+            "once_per_user": "once_per_user" in request.form,
             "active": "active" in request.form,
         })
         flash("Cupom criado com sucesso.", "success")

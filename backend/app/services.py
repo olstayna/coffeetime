@@ -53,6 +53,11 @@ class CartService:
                 if not user_id or OrderRepository.has_orders_for_user(user_id):
                     session.pop("coupon_code", None)
                     coupon = None
+            if coupon and coupon.get("once_per_user"):
+                user_id = session.get("user_id")
+                if not user_id or OrderRepository.has_used_coupon(user_id, coupon["code"]):
+                    session.pop("coupon_code", None)
+                    coupon = None
             if coupon and subtotal >= coupon["minimum_amount"]:
                 if coupon["discount_type"] == "percentage":
                     discount = subtotal * coupon["discount_value"] / Decimal("100")
@@ -80,9 +85,17 @@ class CartService:
         if coupon.get("first_order_only"):
             user_id = session.get("user_id")
             if not user_id:
+                session["pending_coupon_code"] = coupon["code"]
                 raise ValueError("Entre na sua conta para usar este cupom de primeira compra.")
             if OrderRepository.has_orders_for_user(user_id):
                 raise ValueError("Este cupom é válido somente na primeira compra.")
+        if coupon.get("once_per_user"):
+            user_id = session.get("user_id")
+            if not user_id:
+                session["pending_coupon_code"] = coupon["code"]
+                raise ValueError("Entre na sua conta para usar este cupom de uso único.")
+            if OrderRepository.has_used_coupon(user_id, coupon["code"]):
+                raise ValueError("Este cupom já foi utilizado por você.")
         if subtotal < coupon["minimum_amount"]:
             minimum = str(coupon["minimum_amount"]).replace(".", ",")
             raise ValueError(f"Este cupom exige um pedido mínimo de R$ {minimum}.")
@@ -110,6 +123,9 @@ class OrderService:
         if summary["coupon"] and summary["coupon"].get("first_order_only") and OrderRepository.has_orders_for_user(user_id):
             session.pop("coupon_code", None)
             raise ValueError("Este cupom é válido somente na primeira compra.")
+        if summary["coupon"] and summary["coupon"].get("once_per_user") and OrderRepository.has_used_coupon(user_id, summary["coupon"]["code"]):
+            session.pop("coupon_code", None)
+            raise ValueError("Este cupom já foi utilizado por você.")
 
         db = get_db()
         try:

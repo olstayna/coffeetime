@@ -101,8 +101,8 @@ class CouponRepository:
     @staticmethod
     def create(data):
         return execute(
-            "INSERT INTO coupons (code,discount_type,discount_value,minimum_amount,expires_at,first_order_only,active) VALUES (%s,%s,%s,%s,%s,%s,%s)",
-            (data["code"], data["discount_type"], data["discount_value"], data["minimum_amount"], data["expires_at"], data["first_order_only"], data["active"]),
+            "INSERT INTO coupons (code,discount_type,discount_value,minimum_amount,expires_at,first_order_only,once_per_user,active) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
+            (data["code"], data["discount_type"], data["discount_value"], data["minimum_amount"], data["expires_at"], data["first_order_only"], data["once_per_user"], data["active"]),
         )
 
     @staticmethod
@@ -124,6 +124,14 @@ class OrderRepository:
     def has_orders_for_user(user_id):
         row = fetch_one("SELECT EXISTS(SELECT 1 FROM orders WHERE user_id=%s) AS has_orders", (user_id,))
         return bool(row and row["has_orders"])
+
+    @staticmethod
+    def has_used_coupon(user_id, coupon_code):
+        row = fetch_one(
+            "SELECT EXISTS(SELECT 1 FROM orders WHERE user_id=%s AND coupon_code=%s) AS has_used",
+            (user_id, coupon_code),
+        )
+        return bool(row and row["has_used"])
 
     @staticmethod
     def list_for_user(user_id):

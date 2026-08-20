@@ -50,12 +50,15 @@ def login():
         if user and check_password_hash(user["password_hash"], request.form.get("password", "")):
             cart = session.get("cart", {}).copy()
             coupon_code = session.get("coupon_code")
+            pending_coupon_code = session.get("pending_coupon_code")
             session.clear()
             session.update(user_id=user["id"], user_name=user["name"], role=user["role"])
             if user["role"] != "admin" and cart:
                 session["cart"] = cart
             if user["role"] != "admin" and coupon_code:
                 session["coupon_code"] = coupon_code
+            if user["role"] != "admin" and pending_coupon_code:
+                session["pending_coupon_code"] = pending_coupon_code
             if user["role"] == "admin":
                 return redirect(url_for("admin.dashboard"))
             return redirect(next_url or url_for("shop.catalog"))
@@ -113,5 +116,4 @@ def account():
 @auth_bp.post("/sair")
 def logout():
     session.clear()
-    flash("Você saiu da sua conta.", "success")
     return redirect(url_for("shop.catalog"))

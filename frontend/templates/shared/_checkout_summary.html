@@ -1,0 +1,30 @@
+<h2>Seu pedido</h2>
+{% for item in items %}
+<a class="checkout-item" href="{{ url_for('shop.product_detail', product_id=item.product.id) }}">
+  <span>{{ item.quantity }}× {{ item.product.name }}</span>
+  <span>R$ {{ "%.2f"|format(item.subtotal)|replace(".", ",") }}</span>
+</a>
+{% endfor %}
+<hr>
+<div><span>Subtotal</span><strong>R$ {{ "%.2f"|format(subtotal)|replace(".", ",") }}</strong></div>
+{% if coupon %}
+<div class="discount"><span>Cupom {{ coupon.code }}</span><strong>− R$ {{
+    "%.2f"|format(discount)|replace(".", ",") }}</strong></div>
+{% endif %}
+<form class="coupon-form js-checkout-coupon" method="post" action="{{ url_for('shop.apply_coupon') }}">
+  <input type="hidden" name="return_to" value="checkout">
+  <label for="checkout-coupon">Cupom de desconto</label>
+  <div><input id="checkout-coupon" name="coupon" placeholder="BEMVINDO10" required>
+    <button class="button" type="submit">Aplicar</button>
+  </div>
+</form>
+{% if coupon %}
+<form class="js-checkout-coupon" method="post" action="{{ url_for('shop.remove_coupon') }}">
+  <input type="hidden" name="return_to" value="checkout">
+  <button class="link-button danger" type="submit">Remover cupom</button>
+</form>
+{% endif %}
+<hr>
+<div class="total"><span>Total</span><strong>R$ {{ "%.2f"|format(total)|replace(".", ",") }}</strong></div>
+<button class="button full" type="submit" form="checkout-form">Confirmar pedido</button>
+<small>Pagamento demonstrativo. Nenhum dado bancário é coletado.</small>

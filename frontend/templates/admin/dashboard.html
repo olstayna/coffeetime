@@ -123,6 +123,7 @@
         required></label><label>Compra mínima<input name="minimum_amount" inputmode="decimal" value="0,00"
         required></label><label>Validade<input type="date" name="expires_at"></label><label class="check"><input
         type="checkbox" name="first_order_only">Somente primeira compra</label><label class="check"><input
+        type="checkbox" name="once_per_user">Uma utilização por cliente</label><label class="check"><input
         type="checkbox" name="active" checked>Ativo</label><button class="button" type="submit">Adicionar cupom</button>
   </form>
   <div class="table-wrap">
@@ -144,7 +145,8 @@
             else ("R$ " ~ "%.2f"|format(coupon.discount_value)|replace(".", ",")) }}</td>
           <td>R$ {{ "%.2f"|format(coupon.minimum_amount)|replace(".", ",") }}</td>
           <td>{{ coupon.expires_at.strftime("%d/%m/%Y") if coupon.expires_at else "Sem validade" }}</td>
-          <td>{{ "Primeira compra" if coupon.first_order_only else "Todas as compras" }}</td>
+          <td>{% if coupon.first_order_only %}Primeira compra{% elif coupon.once_per_user %}Uma vez por cliente{% else
+            %}Todas as compras{% endif %}</td>
           <td><span class="status">{{ "Ativo" if coupon.active else "Inativo" }}</span></td>
           <td>
             <form method="post" action="{{ url_for('admin.delete_coupon', coupon_id=coupon.id) }}"
