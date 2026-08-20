@@ -12,8 +12,8 @@
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v=9) }}" />
-  <script src="{{ url_for('static', filename='js/app.js', v=7) }}" defer></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
 </head>
 
 <body>
@@ -33,7 +33,7 @@
       {% else %}
       <a href="{{ url_for('shop.catalog') }}#cardapio">Cardápio</a>
       {% if session.get('user_id') %}<a class="account-link"
-        href="{{ url_for('admin.dashboard') if session.get('role') == 'admin' else url_for('shop.orders') }}"><svg
+        href="{{ url_for('admin.dashboard') if session.get('role') == 'admin' else url_for('auth.account') }}"><svg
           viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="12" cy="8" r="4" />
           <path d="M4 21a8 8 0 0 1 16 0" />

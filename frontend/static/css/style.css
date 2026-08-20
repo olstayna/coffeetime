@@ -899,6 +899,82 @@ textarea:focus {
   display: grid;
   gap: 12px;
 }
+.account-heading {
+  margin-bottom: 28px;
+}
+.account-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.32fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+  margin-bottom: 70px;
+}
+.account-menu {
+  display: grid;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.account-menu a {
+  display: grid;
+  gap: 3px;
+  padding: 18px 20px;
+  border-left: 3px solid transparent;
+  border-bottom: 1px solid var(--line);
+}
+.account-menu a:last-child {
+  border-bottom: 0;
+}
+.account-menu a.active,
+.account-menu a:hover {
+  border-left-color: var(--accent);
+  background: var(--surface-2);
+}
+.account-menu span {
+  font-weight: 700;
+}
+.account-menu small,
+.account-panel-heading > p:last-child {
+  color: var(--muted);
+}
+.account-panel {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 32px;
+}
+.account-content {
+  display: grid;
+  gap: 24px;
+}
+.account-panel-heading {
+  margin-bottom: 26px;
+}
+.account-panel-heading h2 {
+  margin: 2px 0 8px;
+  font-size: 2.2rem;
+}
+.account-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.account-form label {
+  display: grid;
+  gap: 7px;
+  font-weight: 700;
+}
+.account-form .button {
+  grid-column: 1 / -1;
+}
+.account-form .button {
+  justify-self: start;
+}
+.password-change-form label:first-of-type,
+.password-change-form small {
+  grid-column: 1 / -1;
+}
+.password-change-form small {
+  color: var(--muted);
+}
 .order-row {
   display: grid;
   grid-template-columns: 1fr auto auto;
@@ -1075,6 +1151,17 @@ footer p {
   .filters,
   .product-grid {
     grid-template-columns: 1fr;
+  }
+  .account-layout,
+  .account-form {
+    grid-template-columns: 1fr;
+  }
+  .account-form .button {
+    grid-column: auto;
+  }
+  .password-change-form label:first-of-type,
+  .password-change-form small {
+    grid-column: auto;
   }
   .product-image {
     height: 300px;

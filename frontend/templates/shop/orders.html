@@ -8,21 +8,25 @@
   <h1>Meus pedidos</h1>
 </header>
 
-<div class="order-list">
-  {% for order in orders %}
-  <a class="order-row" href="{{ url_for('shop.order_detail', order_id=order.id) }}">
-    <div>
-      <strong>Pedido #{{ order.id }}</strong>
-      <small>{{ order.created_at.strftime("%d/%m/%Y às %H:%M") }}</small>
+<div class="account-layout">
+  {% set account_section = 'orders' %}
+  {% include "shared/_account_menu.html" %}
+  <div class="order-list">
+    {% for order in orders %}
+    <a class="order-row" href="{{ url_for('shop.order_detail', order_id=order.id) }}">
+      <div>
+        <strong>Pedido #{{ order.id }}</strong>
+        <small>{{ order.created_at.strftime("%d/%m/%Y às %H:%M") }}</small>
+      </div>
+      <span class="status">{{ order.status|capitalize }}</span>
+      <strong>R$ {{ "%.2f"|format(order.total)|replace(".", ",") }}</strong>
+    </a>
+    {% else %}
+    <div class="empty">
+      <h2>Você ainda não fez pedidos</h2>
+      <a class="button" href="{{ url_for('shop.catalog') }}">Escolher produtos</a>
     </div>
-    <span class="status">{{ order.status|capitalize }}</span>
-    <strong>R$ {{ "%.2f"|format(order.total)|replace(".", ",") }}</strong>
-  </a>
-  {% else %}
-  <div class="empty">
-    <h2>Você ainda não fez pedidos</h2>
-    <a class="button" href="{{ url_for('shop.catalog') }}">Escolher produtos</a>
+    {% endfor %}
   </div>
-  {% endfor %}
 </div>
 {% endblock %}
