@@ -1,0 +1,31 @@
+<div class="popover-title">
+  <strong>Seu carrinho</strong><span>{{ cart_count }} {{ 'item' if cart_count == 1 else 'itens' }}</span>
+</div>
+<div class="mini-cart-list">
+  {% for item in cart_preview['items'][:3] %}
+  <article class="mini-cart-item">
+    <a class="mini-cart-product" href="{{ url_for('shop.product_detail', product_id=item.product.id) }}">
+      <img class="mini-product-photo" src="{{ item.product|image_data_uri }}" alt="">
+      <span><b>{{ item.product.name }}</b><small>{{ item.quantity }} × R$ {{
+          "%.2f"|format(item.product.price)|replace(".", ",") }}</small></span>
+    </a>
+    <div class="mini-cart-actions" aria-label="Alterar quantidade de {{ item.product.name }}">
+      <form class="js-cart-adjust" method="post" action="{{ url_for('shop.adjust_cart', product_id=item.product.id) }}">
+        <input type="hidden" name="delta" value="-1"><button type="submit" aria-label="Remover uma unidade">−</button>
+      </form>
+      <strong>{{ item.quantity }}</strong>
+      <form class="js-cart-adjust" method="post" action="{{ url_for('shop.adjust_cart', product_id=item.product.id) }}">
+        <input type="hidden" name="delta" value="1"><button type="submit" aria-label="Adicionar uma unidade">+</button>
+      </form>
+    </div>
+    <b class="mini-cart-price">R$ {{ "%.2f"|format(item.subtotal)|replace(".", ",") }}</b>
+  </article>
+  {% else %}
+  <p class="muted">Seu carrinho está vazio.</p>
+  {% endfor %}
+</div>
+{% if cart_preview['items'] %}
+<div class="mini-cart-total"><span>Total</span><strong>R$ {{ "%.2f"|format(cart_preview.total)|replace(".", ",")
+    }}</strong></div>
+{% endif %}
+<a class="button full" href="{{ url_for('shop.cart') }}">Ver carrinho</a>
