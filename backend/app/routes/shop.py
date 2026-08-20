@@ -7,6 +7,21 @@ from app.services import CartService, OrderService
 shop_bp = Blueprint("shop", __name__)
 
 
+def cart_ajax_response(message):
+    summary = CartService.summary()
+    count = sum(item["quantity"] for item in summary["items"])
+    return jsonify(
+        ok=True,
+        message=message,
+        count=count,
+        preview_html=render_template(
+            "shared/_cart_preview.html",
+            cart_preview=summary,
+            cart_count=count,
+        ),
+    )
+
+
 @shop_bp.get("/")
 def catalog():
     search = request.args.get("q", "").strip()
@@ -35,7 +50,7 @@ def add_to_cart(product_id):
         CartService.add(product_id, quantity)
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             label = "item adicionado" if quantity == 1 else "itens adicionados"
-            return jsonify(ok=True, message=f"{quantity} {label} ao carrinho.", count=sum(session["cart"].values()))
+            return cart_ajax_response(f"{quantity} {label} ao carrinho.")
         flash("Produto adicionado ao carrinho.", "success")
     except (ValueError, TypeError):
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
@@ -62,7 +77,11 @@ def adjust_cart(product_id):
     try:
         delta = int(request.form.get("delta", 0))
         CartService.update(product_id, current + delta)
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return cart_ajax_response("Carrinho atualizado.")
     except ValueError:
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return jsonify(ok=False, message="Não foi possível alterar a quantidade."), 400
         flash("Não foi possível alterar a quantidade.", "error")
     return redirect(url_for("shop.cart"))
 

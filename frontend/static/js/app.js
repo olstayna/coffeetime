@@ -53,6 +53,20 @@ function showToast(message, type = "success") {
   wireToast(toast);
 }
 
+function updateCart(data) {
+  document
+    .querySelectorAll("[data-cart-count]")
+    .forEach((badge) => (badge.textContent = data.count));
+  document.querySelectorAll(".cart-link").forEach((link) =>
+    link.setAttribute(
+      "aria-label",
+      `Carrinho com ${data.count} ${data.count === 1 ? "item" : "itens"}`,
+    ),
+  );
+  const preview = document.querySelector("[data-cart-preview]");
+  if (preview && data.preview_html) preview.innerHTML = data.preview_html;
+}
+
 document.addEventListener("click", (event) => {
   const step = event.target.closest("[data-step]");
   if (!step) return;
@@ -112,14 +126,33 @@ document.addEventListener("submit", async (event) => {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.message);
-    document
-      .querySelectorAll("[data-cart-count]")
-      .forEach((badge) => (badge.textContent = data.count));
+    updateCart(data);
     showToast(data.message);
   } catch (error) {
     showToast(error.message || "Não foi possível adicionar o item.", "error");
   } finally {
     button.disabled = false;
+  }
+});
+
+document.addEventListener("submit", async (event) => {
+  const form = event.target.closest(".js-cart-adjust");
+  if (!form) return;
+  event.preventDefault();
+  const button = form.querySelector('[type="submit"]');
+  button.disabled = true;
+  try {
+    const response = await fetch(form.action, {
+      method: "POST",
+      body: new FormData(form),
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message);
+    updateCart(data);
+  } catch (error) {
+    button.disabled = false;
+    showToast(error.message || "Não foi possível atualizar o carrinho.", "error");
   }
 });
 

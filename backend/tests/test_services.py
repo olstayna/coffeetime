@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from flask import Flask, session
 
+from app import create_app
 from app.services import CartService, OrderService
 
 
@@ -88,6 +89,53 @@ class OrderServiceTest(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "CEP"):
             OrderService.create(1, form)
+
+
+class CartAjaxTest(unittest.TestCase):
+    def setUp(self):
+        self.app = create_app()
+        self.app.config.update(TESTING=True, SECRET_KEY="test")
+        self.client = self.app.test_client()
+        self.product = {
+            "id": 1,
+            "name": "Espresso",
+            "price": Decimal("7.00"),
+            "image_data": None,
+            "image_mime": None,
+        }
+
+    @patch("app.services.ProductRepository.find")
+    def test_add_ajax_returns_updated_preview(self, find):
+        find.return_value = self.product
+
+        response = self.client.post(
+            "/carrinho/adicionar/1",
+            data={"quantity": "2"},
+            headers={"X-Requested-With": "XMLHttpRequest"},
+        )
+
+        data = response.get_json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data["count"], 2)
+        self.assertIn("Espresso", data["preview_html"])
+        self.assertIn("js-cart-adjust", data["preview_html"])
+
+    @patch("app.services.ProductRepository.find")
+    def test_adjust_ajax_removes_last_item_from_preview(self, find):
+        find.return_value = self.product
+        with self.client.session_transaction() as cart_session:
+            cart_session["cart"] = {"1": 1}
+
+        response = self.client.post(
+            "/carrinho/ajustar/1",
+            data={"delta": "-1"},
+            headers={"X-Requested-With": "XMLHttpRequest"},
+        )
+
+        data = response.get_json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data["count"], 0)
+        self.assertIn("Seu carrinho está vazio", data["preview_html"])
 
 
 if __name__ == "__main__":

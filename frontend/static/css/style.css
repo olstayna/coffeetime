@@ -430,6 +430,17 @@ textarea {
   gap: 10px;
   margin: 25px 0 30px;
 }
+.filters select {
+  appearance: none;
+  padding-right: 46px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232d1b14' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px;
+}
+html[data-theme="dark"] .filters select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f5ecdf' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
+}
 .filters label,
 .auth-card label,
 .form-grid label,
@@ -577,11 +588,47 @@ textarea:focus {
 }
 .mini-cart-item {
   display: grid;
-  grid-template-columns: 52px 1fr auto;
+  grid-template-columns: 1fr auto;
   gap: 10px;
   align-items: center;
   padding: 12px 0;
   border-bottom: 1px solid var(--line);
+  font-size: 0.78rem;
+}
+.mini-cart-product {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+.mini-cart-actions {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  border: 1px solid var(--line);
+}
+.mini-cart-actions form {
+  display: flex;
+}
+.mini-cart-actions button {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.mini-cart-actions button:disabled {
+  opacity: 0.45;
+}
+.mini-cart-actions > strong {
+  min-width: 24px;
+  text-align: center;
+}
+.mini-cart-price {
+  grid-column: 2;
+  justify-self: end;
   font-size: 0.78rem;
 }
 .mini-cart-item img {
@@ -721,7 +768,7 @@ textarea:focus {
 .toast-region {
   position: fixed;
   right: 22px;
-  top: 94px;
+  bottom: 22px;
   z-index: 100;
   display: grid;
   gap: 10px;
@@ -765,7 +812,7 @@ textarea:focus {
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(10px);
   }
 }
 @keyframes toast-time {
@@ -1056,7 +1103,9 @@ footer p {
     gap: 20px;
   }
   .toast-region {
-    top: 78px;
+    right: 14px;
+    bottom: 14px;
+    width: calc(100% - 28px);
   }
 }
 
