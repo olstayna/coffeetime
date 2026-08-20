@@ -1,4 +1,5 @@
 import re
+from urllib.parse import urlsplit
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from mysql.connector import IntegrityError
@@ -9,8 +10,18 @@ from app.repositories import UserRepository
 auth_bp = Blueprint("auth", __name__)
 
 
+def safe_next_url(target):
+    if not target:
+        return None
+    parsed = urlsplit(target)
+    if parsed.scheme or parsed.netloc or not parsed.path.startswith("/") or parsed.path.startswith("//"):
+        return None
+    return target
+
+
 @auth_bp.route("/cadastro", methods=["GET", "POST"])
 def register():
+    next_url = safe_next_url(request.values.get("next"))
     if request.method == "POST":
         name, email = request.form.get("name", "").strip(), request.form.get("email", "").strip().lower()
         password, phone = request.form.get("password", ""), request.form.get("phone", "").strip()
@@ -24,22 +35,31 @@ def register():
             try:
                 UserRepository.create(name, email, generate_password_hash(password), phone)
                 flash("Conta criada. Agora você já pode entrar.", "success")
-                return redirect(url_for("auth.login"))
+                return redirect(url_for("auth.login", next=next_url) if next_url else url_for("auth.login"))
             except IntegrityError:
                 flash("Este e-mail já está cadastrado.", "error")
-    return render_template("auth/register.html")
+    return render_template("auth/register.html", next_url=next_url)
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
+    next_url = safe_next_url(request.values.get("next"))
     if request.method == "POST":
         user = UserRepository.find_by_email(request.form.get("email", "").strip().lower())
         if user and check_password_hash(user["password_hash"], request.form.get("password", "")):
+            cart = session.get("cart", {}).copy()
+            coupon_code = session.get("coupon_code")
             session.clear()
             session.update(user_id=user["id"], user_name=user["name"], role=user["role"])
-            return redirect(url_for("admin.dashboard" if user["role"] == "admin" else "shop.catalog"))
+            if user["role"] != "admin" and cart:
+                session["cart"] = cart
+            if user["role"] != "admin" and coupon_code:
+                session["coupon_code"] = coupon_code
+            if user["role"] == "admin":
+                return redirect(url_for("admin.dashboard"))
+            return redirect(next_url or url_for("shop.catalog"))
         flash("E-mail ou senha inválidos.", "error")
-    return render_template("auth/login.html")
+    return render_template("auth/login.html", next_url=next_url)
 
 
 @auth_bp.post("/sair")
