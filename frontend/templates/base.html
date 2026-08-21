@@ -5,7 +5,27 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f4efe4" />
-  <title>{% block title %}CoffeeTime{% endblock %}</title>
+  <meta name="color-scheme" content="light dark" />
+  {% set page_title %}{% block title %}CoffeeTime · Cafés especiais, doces e salgados{% endblock %}{% endset %}
+  {% set page_description %}{% block description %}Peça cafés especiais, bebidas, grãos, doces e salgados no CoffeeTime. Escolha seus favoritos e acompanhe seu pedido.{% endblock %}{% endset %}
+  {% set page_keywords %}{% block keywords %}cafeteria, café especial, café, grãos de café, cappuccino, doces, salgados, CoffeeTime{% endblock %}{% endset %}
+  <title>{{ page_title|trim }}</title>
+  <meta name="description" content="{{ page_description|trim }}" />
+  <meta name="keywords" content="{{ page_keywords|trim }}" />
+  <meta name="author" content="Tayná Santana" />
+  <meta name="application-name" content="CoffeeTime" />
+  <meta name="robots" content="{{ 'index, follow' if request.endpoint in ['shop.catalog', 'shop.product_detail'] else 'noindex, nofollow' }}" />
+  <link rel="canonical" href="{{ request.base_url }}" />
+
+  <meta property="og:locale" content="pt_BR" />
+  <meta property="og:type" content="{{ 'product' if request.endpoint == 'shop.product_detail' else 'website' }}" />
+  <meta property="og:site_name" content="CoffeeTime" />
+  <meta property="og:title" content="{{ page_title|trim }}" />
+  <meta property="og:description" content="{{ page_description|trim }}" />
+  <meta property="og:url" content="{{ request.base_url }}" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="{{ page_title|trim }}" />
+  <meta name="twitter:description" content="{{ page_description|trim }}" />
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" sizes="any" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

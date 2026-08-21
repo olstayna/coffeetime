@@ -1,4 +1,8 @@
-{% extends "base.html" %}{% block title %}{{ product.name }} · CoffeeTime{% endblock %}{% block content %}
+{% extends "base.html" %}
+{% block title %}{{ product.name }} · CoffeeTime{% endblock %}
+{% block description %}{{ product.description }} Peça {{ product.name }} pelo CoffeeTime.{% endblock %}
+{% block keywords %}{{ product.name }}, {{ product.category }}, CoffeeTime, cafeteria, café especial{% endblock %}
+{% block content %}
 <a class="back-link" href="{{ url_for('shop.catalog') }}#cardapio">← Voltar ao cardápio</a>
 <section class="detail">
   <div class="detail-image"><img src="{{ product|image_data_uri }}" alt="{{ product.name }}"></div>
