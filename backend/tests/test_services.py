@@ -393,6 +393,7 @@ class AuthSessionTest(unittest.TestCase):
         self.assertIn(b"Dados pessoais", response.data)
         self.assertIn(b"Meus pedidos", response.data)
         self.assertIn(b"cliente@example.com", response.data)
+        self.assertIn(b'content="noindex, nofollow"', response.data)
 
     @patch("app.routes.auth.UserRepository.update_profile")
     @patch("app.routes.auth.UserRepository.find")
@@ -449,6 +450,44 @@ class AuthSessionTest(unittest.TestCase):
         stored_hash = update_password.call_args.args[1]
         self.assertEqual(update_password.call_args.args[0], 7)
         self.assertTrue(check_password_hash(stored_hash, "NovaSenha456"))
+
+
+class SeoMetadataTest(unittest.TestCase):
+    def setUp(self):
+        self.app = create_app()
+        self.app.config.update(TESTING=True, SECRET_KEY="test")
+        self.client = self.app.test_client()
+
+    @patch("app.routes.shop.ProductRepository.list_active", return_value=[])
+    def test_catalog_has_public_search_metadata(self, _list_active):
+        response = self.client.get("/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"CoffeeTime \xc2\xb7 Caf\xc3\xa9s especiais", response.data)
+        self.assertIn(b'name="description"', response.data)
+        self.assertIn(b'content="index, follow"', response.data)
+        self.assertIn(b'rel="canonical"', response.data)
+        self.assertIn(b'property="og:title"', response.data)
+
+    @patch("app.routes.shop.ProductRepository.recommendations", return_value=[])
+    @patch("app.routes.shop.ProductRepository.find")
+    def test_product_uses_product_specific_metadata(self, find_product, _recommendations):
+        find_product.return_value = {
+            "id": 1,
+            "name": "Espresso da Casa",
+            "description": "Espresso encorpado de 60 ml.",
+            "category": "Cafés",
+            "price": Decimal("7.00"),
+            "image_data": None,
+            "image_mime": None,
+        }
+
+        response = self.client.get("/produto/1")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Espresso da Casa \xc2\xb7 CoffeeTime", response.data)
+        self.assertIn(b"Espresso encorpado de 60 ml.", response.data)
+        self.assertIn(b'content="product"', response.data)
 
 if __name__ == "__main__":
     unittest.main()
